@@ -8,50 +8,49 @@ using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace NG5APP
-{
-    public class Startup
-    {
-        public Startup(IConfiguration configuration)
-        {
+namespace NG5APP {
+    public class Startup {
+        public Startup (IConfiguration configuration) {
             Configuration = configuration;
         }
 
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddMvc();
+        public void ConfigureServices (IServiceCollection services) {
+            services.AddMvc ();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
-                {
+        public void Configure (IApplicationBuilder app, IHostingEnvironment env) {
+            if (env.IsDevelopment ()) {
+                app.UseDeveloperExceptionPage ();
+                app.UseWebpackDevMiddleware (new WebpackDevMiddlewareOptions {
                     HotModuleReplacement = true
                 });
-            }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
+            } else {
+                app.UseExceptionHandler ("/Home/Error");
             }
 
-            app.UseStaticFiles();
+            app.UseStaticFiles (new StaticFileOptions () {
+                OnPrepareResponse = (context) => {
+                    context.Context.Response.Headers["Cache-Control"] =
+                        Configuration["StaticFiles:Header:Cache-Control"];
+                    context.Context.Response.Headers["Pragma"] =
+                        Configuration["StaticFiles:Headers:Pragma"];
+                    context.Context.Response.Headers["Expires"] =
+                        Configuration["StaticFiles:Headers:Expires"];
+                }
+            });
 
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
+            app.UseMvc (routes => {
+                routes.MapRoute (
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
 
-                routes.MapSpaFallbackRoute(
+                routes.MapSpaFallbackRoute (
                     name: "spa-fallback",
-                    defaults: new { controller = "Home", action = "Index" });
+                    defaults : new { controller = "Home", action = "Index" });
             });
         }
     }
